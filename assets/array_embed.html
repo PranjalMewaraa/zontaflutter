@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://embed.array.io/cms/array-web-component.js?appKey=3F03D20E-5311-43D8-8A76-E4B5D77793BD"></script>
+    <script src="https://embed.array.io/cms/array-account-enroll.js?appKey=3F03D20E-5311-43D8-8A76-E4B5D77793BD"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <array-account-enroll
+      appKey="3F03D20E-5311-43D8-8A76-E4B5D77793BD"
+      apiUrl="https://sandbox.array.io"
+      sandbox="true"
+      showQuickView="true"
+    ></array-account-enroll>
+
+    <script>
+      window.addEventListener("array-event", function arrayEvent(arrayEvent) {
+        const { tagName, event, metadata = {} } = arrayEvent.detail;
+        
+        // Print event and metadata to debug console
+        console.log("Array Event triggered: ");
+        console.log("component: " + tagName + "; user action: " + event);
+        if (metadata) {
+          console.log("Metadata:", metadata);
+        }
+        
+        // Send metadata to Flutter using the WebView JavaScript channel
+        if (window.ArrayEvents) {
+          console.log("Sending event and metadata to Flutter...");
+          window.ArrayEvents.postMessage(JSON.stringify({
+            event: event,
+            metadata: metadata
+          }));
+        }
+      });
+
+      // For debugging purposes, notify when script is ready
+      console.log("Array embed script loaded and ready.");
+    </script>
+  </body>
+</html>
