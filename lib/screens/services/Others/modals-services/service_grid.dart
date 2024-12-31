@@ -13,7 +13,7 @@ class ServicesGrid extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => ServicesModal(),
+      builder: (context) => const ServicesModal(),
     );
   }
 

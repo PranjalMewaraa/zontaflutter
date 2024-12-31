@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // For SharedPreferences
 import 'package:zonta/screens/dashboard/dashboard_screen.dart'; // Your Dashboard screen
-import 'package:zonta/screens/preference/preference_screen.dart'; // Your Preference screen
+// Your Preference screen
 import 'package:zonta/provider/preferences_provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -32,19 +32,11 @@ class _SplashScreenState extends State<SplashScreen> {
     int? userId = sharedPreferences
         .getInt('user_id'); // Fetch user_id from SharedPreferences
 
-    if (userId != null) {
-      // If user_id exists, navigate to DashboardScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
-    } else {
-      // If no user_id, navigate to PreferencesScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const PreferencesScreen()),
-      );
-    }
+    // If user_id exists, navigate to DashboardScreen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+    );
   }
 
   @override

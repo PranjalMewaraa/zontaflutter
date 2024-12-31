@@ -26,11 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _checkUserToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userToken = prefs.getString('user_token');
-    if (userToken != null) {
-      setState(() {
-        isVerified = true;
-      });
-    }
+    setState(() {
+      isVerified = true;
+    });
   }
 
   @override

@@ -35,11 +35,11 @@ class JsScripts {
     // Log available fields
     const inputs = shadowRoot.querySelectorAll('input, select, textarea');
     console.log('Available fields in shadow DOM:');
-    inputs.forEach(input => console.log(\`Field Name: \${input.name}, ID: \${input.id}\`));
+    inputs.forEach(input => console.log(`Field Name: \${input.name}, ID: \${input.id}`));
 
     Object.entries(formFields).forEach(([fieldName, value]) => {
       // Handle fields by both name and ID
-      let input = shadowRoot.querySelector(\`[name="\${fieldName}"], [id="\${fieldName}"]\`);
+      let input = shadowRoot.querySelector(`[name="\${fieldName}"], [id="\${fieldName}"]`);
 
       // Handle specific case for state field
       if (!input && fieldName === 'state') {
@@ -55,9 +55,9 @@ class JsScripts {
             ['change', 'blur'].forEach(eventType => {
               input.dispatchEvent(new Event(eventType, { bubbles: true, composed: true }));
             });
-            console.log(\`Populated dropdown \${fieldName} with \${value}\`);
+            console.log(`Populated dropdown \${fieldName} with \${value}`);
           } else {
-            console.warn(\`Option with value "\${value}" not found for dropdown \${fieldName}\`);
+            console.warn(`Option with value "\${value}" not found for dropdown \${fieldName}`);
           }
         } else {
           // Handle other input types
@@ -65,10 +65,10 @@ class JsScripts {
           ['input', 'change', 'blur'].forEach(eventType => {
             input.dispatchEvent(new Event(eventType, { bubbles: true, composed: true }));
           });
-          console.log(\`Populated \${fieldName} with \${value}\`);
+          console.log(`Populated \${fieldName} with \${value}`);
         }
       } else {
-        console.warn(\`Field not found: \${fieldName}\`);
+        console.warn(`Field not found: \${fieldName}`);
       }
     });
   }

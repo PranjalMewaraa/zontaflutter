@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +19,7 @@ class GlassServiceController extends GetxController {
       int? userId = prefs.getInt('user_id');
       String? accessToken = prefs.getString('access_token');
 
-      if (userId == null || accessToken == null) {
+      if (accessToken == null) {
         Get.snackbar("Error", "User not logged in or credentials missing");
         return;
       }

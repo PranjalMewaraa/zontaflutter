@@ -102,7 +102,7 @@ class LoginController extends GetxController {
     String? accessToken = prefs.getString('access_token');
     String? userName = prefs.getString('user_name');
 
-    if (userId != null && accessToken != null && userName != null) {
+    if (accessToken != null) {
       return {
         'user_id': userId,
         'access_token': accessToken,

@@ -177,7 +177,7 @@ src="https://embed.array.io/cms/array-credit-overview.js?appKey=3F03D20E-5311-43
     ''';
 
       debugPrint('Loading credit overview HTML...');
-      await controller!.loadHtmlString(
+      await controller.loadHtmlString(
         htmlContent,
         baseUrl: 'https://sandbox.array.io',
       );
