@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zonta/features/auto_service/presentation/screens/auto_service_screen.dart';
 import 'package:zonta/screens/services/cash/cash_wallet_screen.dart';
 import './service_item.dart';
 import './services_modal.dart';
@@ -68,7 +69,17 @@ class ServicesGrid extends StatelessWidget {
                 }
               : services[index]['name'] == 'Others'
                   ? () => _showServicesModal(context)
-                  : null,
+                  : services[index]['name'] == 'Auto'
+                      ? () {
+                          // Add functionality for Auto service here
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AutoServiceScreen(),
+                            ),
+                          );
+                        }
+                      : null,
         );
       },
     );
