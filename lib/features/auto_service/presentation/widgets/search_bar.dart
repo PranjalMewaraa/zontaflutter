@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
-class CustomSearchBar extends StatelessWidget {
-  final Function(String)? onSearch;
+class CustomSearchBar extends StatefulWidget {
+  final Function(String, String)? onSearch;
 
   const CustomSearchBar({Key? key, this.onSearch}) : super(key: key);
+
+  @override
+  _CustomSearchBarState createState() => _CustomSearchBarState();
+}
+
+class _CustomSearchBarState extends State<CustomSearchBar> {
+  String _selectedOption = "Where to?";
+  final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +28,50 @@ class CustomSearchBar extends StatelessWidget {
           ),
         ],
       ),
-      child: TextField(
-        onChanged: onSearch,
-        decoration: const InputDecoration(
-          hintText: 'Where to?',
-          border: InputBorder.none,
-          prefixIcon: Icon(Icons.location_on),
-          suffixIcon: Icon(Icons.search),
-        ),
+      child: Row(
+        children: [
+          DropdownButton<String>(
+            value: _selectedOption,
+            underline: const SizedBox(), // Remove the underline
+            items: ["Where to?", "From"].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                _selectedOption = newValue!;
+                _controller.clear(); // Clear the input when the option changes
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              onChanged: (text) {
+                if (widget.onSearch != null) {
+                  widget.onSearch!(_selectedOption, text);
+                }
+              },
+              decoration: InputDecoration(
+                hintText: _selectedOption,
+                border: InputBorder.none,
+                prefixIcon: const Icon(Icons.location_on),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _controller.clear();
+                    if (widget.onSearch != null) {
+                      widget.onSearch!(_selectedOption, "");
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

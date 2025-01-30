@@ -26,6 +26,7 @@ dependencies:
   flutter_bloc: ^8.1.3
   geolocator: ^10.1.0
   http: ^0.13.6
+  flutter_svg: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -38,6 +39,7 @@ flutter:
     - assets/images/
     - assets/images/home/
     - assets/array_embed.html
+    - assets/images/carRide.png
   fonts:
     - family: Inter
       fonts:

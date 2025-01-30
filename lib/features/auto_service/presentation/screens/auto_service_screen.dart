@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:zonta/features/auto_service/presentation/widgets/ride_search_card.dart';
 import 'package:zonta/features/auto_service/presentation/widgets/search_bar.dart';
 import '../bloc/location_bloc.dart';
 import '../bloc/ride_bloc.dart';
@@ -21,6 +22,8 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
   late AnimationController _markerAnimationController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  final _googleMapsService =
+      GoogleMapsService(apiKey: 'AIzaSyC3IpZfsjWehYQrFIF16NkAC0XvcDpypMo');
   LatLng? _startPosition;
   LatLng? _endPosition;
   List<Driver> _nearbyDrivers = [];
@@ -30,7 +33,11 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
   void initState() {
     super.initState();
     _initializeControllers();
-    _initializeLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeLocation();
+      }
+    });
   }
 
   void _initializeControllers() {
@@ -67,16 +74,11 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
   }
 
   void _fetchNearbyDrivers(LatLng position) {
-    // Simulate fetching nearby drivers
-    // In a real app, this would be an API call
     _nearbyDrivers = [
       Driver(
         id: '1',
         name: 'John Doe',
-        position: LatLng(
-          position.latitude + 0.001,
-          position.longitude + 0.001,
-        ),
+        position: LatLng(position.latitude + 0.001, position.longitude + 0.001),
         price: 25.0,
         vehicleType: 'Sedan',
         vehicleNumber: 'ABC123',
@@ -85,10 +87,7 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
       Driver(
         id: '2',
         name: 'Jane Smith',
-        position: LatLng(
-          position.latitude - 0.001,
-          position.longitude - 0.001,
-        ),
+        position: LatLng(position.latitude - 0.001, position.longitude - 0.001),
         price: 22.0,
         vehicleType: 'SUV',
         vehicleNumber: 'XYZ789',
@@ -98,18 +97,20 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
     _updateDriverMarkers();
   }
 
-  void _updateDriverMarkers() {
+  void _updateDriverMarkers() async {
+    BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(1024, 1024)),
+      'assets/images/carRide.png',
+    );
     setState(() {
       _markers
           .removeWhere((marker) => marker.markerId.value.startsWith('driver_'));
-
       for (final driver in _nearbyDrivers) {
         _markers.add(
           Marker(
             markerId: MarkerId('driver_${driver.id}'),
             position: driver.position,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueYellow),
+            icon: customIcon,
             infoWindow: InfoWindow(
               title: '${driver.name} - ${driver.vehicleType}',
               snippet:
@@ -127,16 +128,14 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
     setState(() => _isLoading = true);
 
     try {
-      final directions = await GoogleMapsService(
-        apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-      ).getDirections(
+      final directions = await _googleMapsService.getDirections(
         origin: _startPosition!,
         destination: _endPosition!,
       );
 
-      final points = await GoogleMapsService(
-        apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-      ).decodePolyline(directions['routes'][0]['overview_polyline']['points']);
+      final points = await _googleMapsService.decodePolyline(
+        directions['routes'][0]['overview_polyline']['points'],
+      );
 
       final bounds = LatLngBounds(
         southwest: LatLng(
@@ -161,16 +160,13 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
         );
       });
 
-      await _mapController.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 50),
-      );
+      await _mapController
+          .animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
 
       final distance =
           directions['routes'][0]['legs'][0]['distance']['value'].toDouble();
       final duration = Duration(
-        seconds: directions['routes'][0]['legs'][0]['duration']['value'],
-      );
-
+          seconds: directions['routes'][0]['legs'][0]['duration']['value']);
       _showRouteInfo(distance, duration);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -191,15 +187,18 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
         initialChildSize: 0.4,
         minChildSize: 0.2,
         maxChildSize: 0.8,
-        builder: (_, controller) => RouteInfoBottomSheet(
-          distance: distance,
-          duration: duration,
-          cost: cost,
-          drivers: _nearbyDrivers,
-          onDriverSelected: (driver) {
-            context.read<RideBloc>().add(RequestRide(driver));
-            Navigator.pop(context);
-          },
+        builder: (_, controller) => SingleChildScrollView(
+          controller: controller,
+          child: RouteInfoBottomSheet(
+            distance: distance,
+            duration: duration,
+            cost: cost,
+            drivers: _nearbyDrivers,
+            onDriverSelected: (driver) {
+              context.read<RideBloc>().add(RequestRide(driver));
+              Navigator.pop(context);
+            },
+          ),
         ),
       ),
     );
@@ -267,25 +266,27 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
   }
 
   Widget _buildMap() {
-    return BlocListener<LocationBloc, LocationState>(
-      listener: (context, state) {
-        if (state is LocationUpdated) {
-          _updateMapPosition(state.position);
-          _fetchNearbyDrivers(state.position);
-        }
-      },
-      child: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(0, 0),
-          zoom: 15,
+    return SizedBox.expand(
+      child: BlocListener<LocationBloc, LocationState>(
+        listener: (context, state) {
+          if (state is LocationUpdated) {
+            _updateMapPosition(state.position);
+            _fetchNearbyDrivers(state.position);
+          }
+        },
+        child: GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(0, 0),
+            zoom: 32,
+          ),
+          onMapCreated: (controller) => _mapController = controller,
+          markers: _markers,
+          polylines: _polylines,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          onTap: _handleMapTap,
         ),
-        onMapCreated: (controller) => _mapController = controller,
-        markers: _markers,
-        polylines: _polylines,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        onTap: _handleMapTap,
       ),
     );
   }
@@ -295,15 +296,19 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisSize: MainAxisSize.max,
           children: [
-            CustomSearchBar(
-              onSearch: (query) {
-                // Implement location search
-                // This would typically use the Google Places API
-              },
-            ),
             const SizedBox(height: 16),
             _buildCurrentLocation(),
+            const SizedBox(height: 518),
+            RideSearchCard(
+              onSearch: (pickup, dropoff, vehicle) {
+                // Handle the search action
+                print('Pickup Location: $pickup');
+                print('Drop-off Location: $dropoff');
+                print('Selected Vehicle: $vehicle');
+              },
+            ),
           ],
         ),
       ),
@@ -328,13 +333,11 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
               ],
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.location_on, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  'Current Location: ${state.position.latitude.toStringAsFixed(4)}, '
-                  '${state.position.longitude.toStringAsFixed(4)}',
+                  'Current Location: ${state.position.latitude.toStringAsFixed(4)}, ${state.position.longitude.toStringAsFixed(4)}',
                   style: const TextStyle(fontSize: 12),
                 ),
               ],
@@ -349,9 +352,7 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
   Widget _buildLoadingIndicator() {
     return Container(
       color: Colors.black.withOpacity(0.3),
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -360,17 +361,11 @@ class _AutoServiceScreenState extends State<AutoServiceScreen>
       listener: (context, state) {
         if (state is RideAccepted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Ride accepted by ${state.driver.name}!'),
-              backgroundColor: Colors.green,
-            ),
+            SnackBar(content: Text('Ride accepted by ${state.driver.name}!')),
           );
         } else if (state is RideError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.message}'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Error: ${state.message}')),
           );
         }
       },

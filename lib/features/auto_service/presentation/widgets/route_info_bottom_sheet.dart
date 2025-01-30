@@ -20,18 +20,27 @@ class RouteInfoBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildTripDetails(),
-          const SizedBox(height: 16),
-          _buildDriversList(),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 5,
+          ),
         ],
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildTripDetails(),
+            const SizedBox(height: 16),
+            _buildDriversList(),
+          ],
+        ),
       ),
     );
   }
@@ -58,12 +67,20 @@ class RouteInfoBottomSheet extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 20),
+          Icon(icon, size: 20, color: Colors.blueAccent),
           const SizedBox(width: 8),
-          Text(label),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ],
       ),
     );
@@ -84,37 +101,56 @@ class RouteInfoBottomSheet extends StatelessWidget {
           itemCount: drivers.length,
           itemBuilder: (context, index) {
             final driver = drivers[index];
-            return Card(
-              child: ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                title: Text(driver.name),
-                subtitle:
-                    Text('${driver.vehicleType} - ${driver.vehicleNumber}'),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '\$${driver.price.toStringAsFixed(2)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, size: 16, color: Colors.amber),
-                        Text('${driver.rating}'),
-                      ],
-                    ),
-                  ],
-                ),
-                onTap: () => onDriverSelected(driver),
-              ),
-            );
+            return _buildDriverCard(driver);
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildDriverCard(Driver driver) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.blueAccent.withOpacity(0.2),
+          child: const Icon(Icons.person, color: Colors.blueAccent),
+        ),
+        title: Text(
+          driver.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '${driver.vehicleType} - ${driver.vehicleNumber}',
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '\$${driver.price.toStringAsFixed(2)}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star, size: 16, color: Colors.amber),
+                Text(
+                  driver.rating.toString(),
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ],
+        ),
+        onTap: () => onDriverSelected(driver),
+      ),
     );
   }
 }
